@@ -88,7 +88,8 @@ export default function App() {
     const invoice = invoices.find((item) => item.id === id);
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const API_URL = isLocal ? "http://localhost:5001" : "/api";
       await axios.post(`${API_URL}/send-reminder`, {
         customer: invoice.customer,
         email: invoice.email,
