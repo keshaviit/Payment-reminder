@@ -31,6 +31,7 @@ export default function App() {
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [activeTab, setActiveTab] = useState("Dashboard");
 
   const [formData, setFormData] = useState({
     customer: "",
@@ -186,6 +187,21 @@ export default function App() {
     return "bg-yellow-100 text-yellow-700";
   };
 
+  const uniqueCustomers = Array.from(new Set(invoices.map(inv => inv.customer))).map(customerName => {
+    const customerInvoices = invoices.filter(inv => inv.customer === customerName);
+    const totalSpent = customerInvoices.reduce((acc, inv) => acc + Number(inv.amount), 0);
+    return { name: customerName, totalInvoices: customerInvoices.length, totalSpent };
+  });
+
+  const navItems = [
+    { name: "Dashboard", icon: <LayoutDashboard size={18} /> },
+    { name: "Invoices", icon: <FileText size={18} /> },
+    { name: "Reminders", icon: <Send size={18} /> },
+    { name: "Customers", icon: <Users size={18} /> },
+    { name: "Reports", icon: <BarChart3 size={18} /> },
+    { name: "Settings", icon: <Settings size={18} /> },
+  ];
+
   const chartData = [
     { name: "Paid", value: paidInvoices },
     { name: "Pending", value: pendingInvoices },
@@ -209,35 +225,20 @@ export default function App() {
           </div>
 
           <nav className="space-y-3">
-            <div className="bg-blue-600 px-4 py-3 rounded-xl flex items-center gap-3">
-              <LayoutDashboard size={18} />
-              Dashboard
-            </div>
-
-            <div className="px-4 py-3 flex items-center gap-3 text-blue-100">
-              <FileText size={18} />
-              Invoices
-            </div>
-
-            <div className="px-4 py-3 flex items-center gap-3 text-blue-100">
-              <Send size={18} />
-              Reminders
-            </div>
-
-            <div className="px-4 py-3 flex items-center gap-3 text-blue-100">
-              <Users size={18} />
-              Customers
-            </div>
-
-            <div className="px-4 py-3 flex items-center gap-3 text-blue-100">
-              <BarChart3 size={18} />
-              Reports
-            </div>
-
-            <div className="px-4 py-3 flex items-center gap-3 text-blue-100">
-              <Settings size={18} />
-              Settings
-            </div>
+            {navItems.map((item) => (
+              <div
+                key={item.name}
+                onClick={() => setActiveTab(item.name)}
+                className={`px-4 py-3 rounded-xl flex items-center gap-3 cursor-pointer transition-colors ${
+                  activeTab === item.name
+                    ? "bg-blue-600 text-white"
+                    : "text-blue-100 hover:bg-blue-800/50"
+                }`}
+              >
+                {item.icon}
+                {item.name}
+              </div>
+            ))}
           </nav>
         </div>
 
@@ -247,13 +248,14 @@ export default function App() {
       <main className="flex-1 p-5 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-slate-900">{activeTab}</h1>
             <p className="text-slate-500">Welcome back, Admin!</p>
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
+        {(activeTab === "Dashboard" || activeTab === "Invoices") && (
+          <form
+            onSubmit={handleSubmit}
           className="bg-white p-5 rounded-2xl shadow-sm border mb-6"
         >
           <h2 className="text-lg font-bold mb-4">Create New Invoice</h2>
@@ -308,7 +310,9 @@ export default function App() {
             </button>
           </div>
         </form>
+        )}
 
+        {(activeTab === "Dashboard" || activeTab === "Reports") && (
         <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
           <StatCard
             title="Total Invoices"
@@ -341,7 +345,9 @@ export default function App() {
             color="green"
           />
         </div>
+        )}
 
+        {(activeTab === "Dashboard" || activeTab === "Reports") && (
         <div className="bg-white p-5 rounded-2xl shadow-sm border mb-6">
           <h2 className="font-bold mb-4">Paid vs Pending vs Overdue</h2>
 
@@ -368,7 +374,10 @@ export default function App() {
             </ResponsiveContainer>
           </div>
         </div>
+        )}
 
+        {(activeTab === "Dashboard" || activeTab === "Invoices") && (
+        <>
         <div className="bg-white p-4 rounded-2xl shadow-sm border mb-6 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search
@@ -495,7 +504,10 @@ export default function App() {
             </table>
           </div>
         </div>
+        </>
+        )}
 
+        {(activeTab === "Dashboard" || activeTab === "Reminders") && (
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="bg-white p-5 rounded-2xl shadow-sm border">
             <h2 className="font-bold mb-4">Recent Activities</h2>
@@ -551,6 +563,47 @@ export default function App() {
             )}
           </div>
         </div>
+        )}
+
+        {activeTab === "Customers" && (
+          <div className="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
+            <h2 className="font-bold p-5">Customer Directory</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="p-4 text-left">Customer Name</th>
+                    <th className="p-4 text-left">Total Invoices</th>
+                    <th className="p-4 text-left">Total Amount Spent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {uniqueCustomers.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="p-6 text-center text-slate-500">No customers found.</td>
+                    </tr>
+                  ) : (
+                    uniqueCustomers.map((customer, index) => (
+                      <tr key={index} className="border-t">
+                        <td className="p-4 font-semibold">{customer.name}</td>
+                        <td className="p-4">{customer.totalInvoices}</td>
+                        <td className="p-4 font-semibold text-green-600">₹{customer.totalSpent}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "Settings" && (
+          <div className="bg-white p-10 rounded-2xl shadow-sm border text-center">
+            <Settings size={48} className="mx-auto text-slate-300 mb-4" />
+            <h2 className="text-xl font-bold text-slate-700">Settings Coming Soon</h2>
+            <p className="text-slate-500 mt-2">The settings panel is currently under construction.</p>
+          </div>
+        )}
       </main>
     </div>
   );
