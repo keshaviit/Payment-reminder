@@ -2,6 +2,8 @@
 
 A full-stack payment reminder dashboard built for the Binary Automates Software Engineering Internship assignment.
 
+Deployment link :https://payment-reminder-zeta.vercel.app/
+
 ## Features
 
 - Create and manage invoices
