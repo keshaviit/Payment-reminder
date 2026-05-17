@@ -88,7 +88,8 @@ export default function App() {
     const invoice = invoices.find((item) => item.id === id);
 
     try {
-      await axios.post("http://localhost:5001/send-reminder", {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+      await axios.post(`${API_URL}/send-reminder`, {
         customer: invoice.customer,
         email: invoice.email,
         amount: invoice.amount,
