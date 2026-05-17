@@ -15,13 +15,21 @@ app.get("/", (req, res) => {
 app.post("/send-reminder", async (req, res) => {
   const { customer, email, amount } = req.body;
 
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    return res.status(500).json({ message: "Server email configuration is missing" });
+  }
+
   try {
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 10000 // 10 seconds timeout
     });
 
     await transporter.sendMail({
